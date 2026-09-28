@@ -1,0 +1,31 @@
+# =============================================================================
+# config/models.yaml  (AWS version)
+# =============================================================================
+#
+# WHERE THE MODEL SETTINGS COME FROM
+# ----------------------------------
+# The chat model and the region are NOT set here. They come from .env:
+#
+#   AWS_MODEL_BEDROCK_ID  -> the chat model, used for BOTH roles below
+#   AWS_BEDROCK_ARN       -> that model's ARN; the region is read from it
+#
+# Code never names a model directly: it asks for a role ("small" or
+# "strong") and metadata/llm.py decides which model that means. Today both
+# roles use AWS_MODEL_BEDROCK_ID. To give the small role its own cheaper
+# model later, add a second setting and one line in metadata/llm.py.
+#
+#   small  -> understanding the question
+#   strong -> table notes, SQL, commentary
+# =============================================================================
+
+# Titan Text Embeddings V2: turns text into numbers for pgvector search. It is
+# called with the same keys and in the same region as the chat model. It
+# returns 1,024 numbers per text (it can also return 256 or 512). The pgvector
+# column in metadata/store.py is vector(1024) to match: if you change this
+# number, change it there too, and re-run metadata.publish.
+embedding: amazon.titan-embed-text-v2:0
+embedding_dimensions: 1024
+
+# Longest reply the chat model may write, in tokens. Table notes for a wide
+# table are the longest replies this project asks for.
+max_tokens: 4096

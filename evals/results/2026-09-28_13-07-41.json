@@ -1,0 +1,264 @@
+{
+  "when": "2026-09-28_13-07-41",
+  "model": "apac.amazon.nova-pro-v1:0",
+  "seconds": 7.3,
+  "summary": {
+    "questions": 1,
+    "finding": {
+      "precision_at_k": 0.6,
+      "recall_at_k": 1.0,
+      "f1_at_k": 0.75,
+      "mrr": 1.0,
+      "join_path_exact": 0,
+      "join_path_of": 1
+    },
+    "answering": {
+      "grounded": 0,
+      "grounded_of": 1,
+      "complete": 1,
+      "complete_of": 1,
+      "sql_ran": 1,
+      "sql_of": 1,
+      "retries": 0
+    },
+    "refusing": {
+      "correct": 0,
+      "of": 0
+    },
+    "overall": {
+      "status_correct": 1,
+      "of": 1,
+      "errors": 0
+    }
+  },
+  "questions": [
+    {
+      "id": "p1_credit_risk_flows",
+      "kind": "planted",
+      "question": "Why did net flows in Sahyadri Credit Risk Fund drop in March 2024?",
+      "seconds": 7.3,
+      "error": null,
+      "retrieval": {
+        "precision_at_k": 0.6,
+        "recall_at_k": 1.0,
+        "f1_at_k": 0.75,
+        "reciprocal_rank": 1.0,
+        "join_path": {
+          "required": 2,
+          "matched": 1,
+          "exact": false,
+          "missing": [
+            "transactions.plan_id = scheme_plans.plan_id"
+          ]
+        },
+        "tables_selected": [
+          "schemes",
+          "transactions",
+          "scheme_plans",
+          "scheme_aum_monthly",
+          "distributors",
+          "sip_registrations",
+          "folios",
+          "investors",
+          "nav_history"
+        ],
+        "tables_needed": [
+          "transactions",
+          "scheme_plans",
+          "schemes"
+        ]
+      },
+      "generation": {
+        "status_correct": true,
+        "status": "completed",
+        "groundedness": {
+          "checked": 2,
+          "grounded": 1,
+          "score": 0.5,
+          "ungrounded": [
+            197.62
+          ]
+        },
+        "completeness": {
+          "checked": 2,
+          "found": 2,
+          "score": 1.0,
+          "missing": []
+        },
+        "sql": {
+          "sql_written": true,
+          "checks_passed": true,
+          "executed": true,
+          "attempts": 1
+        }
+      },
+      "result": {
+        "status": "completed",
+        "block_reason": null,
+        "error": null,
+        "checks": [
+          {
+            "check": "single_statement",
+            "passed": true,
+            "detail": "1 statement(s)"
+          },
+          {
+            "check": "read_only",
+            "passed": true,
+            "detail": "SELECT only"
+          },
+          {
+            "check": "known_tables",
+            "passed": true,
+            "detail": "Tables: folios, scheme_aum_monthly, scheme_plans, schemes, sip_registrations, transactions"
+          },
+          {
+            "check": "date_filter",
+            "passed": true,
+            "detail": "transactions filtered by a range on txn_date"
+          },
+          {
+            "check": "plan_cost",
+            "passed": true,
+            "detail": "Estimated cost 529, ~607 rows"
+          }
+        ],
+        "attempts": 1,
+        "tables": [
+          "schemes",
+          "transactions",
+          "scheme_plans",
+          "scheme_aum_monthly",
+          "distributors",
+          "sip_registrations",
+          "folios",
+          "investors",
+          "nav_history"
+        ],
+        "sql": "WITH scheme_metrics AS (SELECT s.scheme_name, SUM(CASE WHEN t.txn_type IN ('Redemption', 'Switch Out') THEN -t.amount ELSE t.amount END) AS net_flows, COUNT(CASE WHEN t.txn_type = 'Redemption' THEN 1 END) AS redemptions_count, SUM(CASE WHEN t.txn_type = 'Redemption' THEN t.amount ELSE 0 END) AS redemptions_value, AVG(CASE WHEN t.txn_status = 'Rejected' THEN 1.0 ELSE 0 END) * 100 AS rejection_rate, COUNT(CASE WHEN sr.sip_status = 'Cancelled' THEN 1 END) AS sip_cancellations, sam.aum_amount FROM transactions t JOIN scheme_plans sp ON t.plan_id = sp.plan_id JOIN schemes s ON sp.scheme_id = s.scheme_id LEFT JOIN folios f ON t.folio_id = f.folio_id LEFT JOIN sip_registrations sr ON f.folio_id = sr.folio_id LEFT JOIN scheme_aum_monthly sam ON s.scheme_id = sam.scheme_id AND sam.month_end_date = (SELECT MAX(month_end_date) FROM scheme_aum_monthly WHERE scheme_id = s.scheme_id AND month_end_date <= '2024-03-31') WHERE s.scheme_name = 'Sahyadri Credit Risk Fund' AND t.txn_date BETWEEN '2024-02-01' AND '2024-03-31' AND t.txn_status = 'Completed' GROUP BY s.scheme_name, sam.aum_amount) SELECT scheme_name, net_flows, redemptions_count, redemptions_value, rejection_rate, sip_cancellations, aum_amount FROM scheme_metrics",
+        "commentary": "In March 2024, the Sahyadri Credit Risk Fund saw net outflows of 2.17 crore rupees. There were 242 redemptions totaling 3.84 crore rupees. The rejection rate was 0%, and there were no SIP cancellations. The Assets Under Management (AUM) stood at 197.62 crore rupees. These figures highlight a significant drop in net flows alongside a notable increase in redemptions.",
+        "result": {
+          "columns": [
+            "scheme_name",
+            "net_flows",
+            "redemptions_count",
+            "redemptions_value",
+            "rejection_rate",
+            "sip_cancellations",
+            "aum_amount"
+          ],
+          "rows": [
+            [
+              "Sahyadri Credit Risk Fund",
+              -21698609.48,
+              242,
+              38447775.98,
+              0.0,
+              0,
+              197619779.6
+            ]
+          ]
+        },
+        "join_path": {
+          "tables": [
+            "schemes",
+            "transactions",
+            "scheme_plans",
+            "scheme_aum_monthly",
+            "distributors",
+            "sip_registrations",
+            "folios",
+            "investors",
+            "nav_history"
+          ],
+          "joins": [
+            {
+              "from_table": "folios",
+              "from_column": "scheme_id",
+              "to_table": "schemes",
+              "to_column": "scheme_id",
+              "source": "declared",
+              "confidence": 1.0
+            },
+            {
+              "from_table": "folios",
+              "from_column": "investor_id",
+              "to_table": "investors",
+              "to_column": "investor_id",
+              "source": "declared",
+              "confidence": 1.0
+            },
+            {
+              "from_table": "scheme_aum_monthly",
+              "from_column": "scheme_id",
+              "to_table": "schemes",
+              "to_column": "scheme_id",
+              "source": "same_name",
+              "confidence": 1.0
+            },
+            {
+              "from_table": "scheme_plans",
+              "from_column": "scheme_id",
+              "to_table": "schemes",
+              "to_column": "scheme_id",
+              "source": "declared",
+              "confidence": 1.0
+            },
+            {
+              "from_table": "nav_history",
+              "from_column": "plan_id",
+              "to_table": "scheme_plans",
+              "to_column": "plan_id",
+              "source": "declared",
+              "confidence": 1.0
+            },
+            {
+              "from_table": "sip_registrations",
+              "from_column": "folio_id",
+              "to_table": "folios",
+              "to_column": "folio_id",
+              "source": "declared",
+              "confidence": 1.0
+            },
+            {
+              "from_table": "sip_registrations",
+              "from_column": "distributor_arn",
+              "to_table": "distributors",
+              "to_column": "arn_no",
+              "source": "declared",
+              "confidence": 1.0
+            },
+            {
+              "from_table": "transactions",
+              "from_column": "arn_code",
+              "to_table": "distributors",
+              "to_column": "arn_no",
+              "source": "value_overlap",
+              "confidence": 1.0
+            }
+          ]
+        }
+      },
+      "expected": {
+        "id": "p1_credit_risk_flows",
+        "question": "Why did net flows in Sahyadri Credit Risk Fund drop in March 2024?",
+        "kind": "planted",
+        "expect_status": "completed",
+        "tables": [
+          "transactions",
+          "scheme_plans",
+          "schemes"
+        ],
+        "joins": [
+          "transactions.plan_id = scheme_plans.plan_id",
+          "scheme_plans.scheme_id = schemes.scheme_id"
+        ],
+        "must_mention": [
+          "credit risk",
+          "2024"
+        ],
+        "notes": "Redemptions spike after the Vardhaman bond is cut to BBB- on 12 Mar 2024."
+      }
+    }
+  ]
+}
