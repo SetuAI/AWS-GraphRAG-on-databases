@@ -1,0 +1,12 @@
+# Settings and keys: NEVER commit
+.env
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+# macOS
+.DS_Store
+# Generated data files
+data/
+*.parquet
